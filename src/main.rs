@@ -1,12 +1,13 @@
 extern crate stopwatch;
 mod fabric;
 use stopwatch::{Stopwatch};
+use crate::fabric::ClientSdk;
 
 fn main() {
 
     println!("act - 1");
     //
-    let sdk = fabric::client_sdk();
+    let  sdk: ClientSdk = fabric::client_sdk();
     sdk.start_fabric();
 
     let sw = Stopwatch::start_new();

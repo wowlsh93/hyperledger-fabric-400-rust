@@ -3,6 +3,7 @@ use std::time::Duration;
 use crossbeam::crossbeam_channel::{never, unbounded,Select,RecvError, Sender, Receiver};
 use crossbeam::crossbeam_channel::select;
 use std::thread::{sleep, Thread};
+use std::sync::Arc;
 
 pub struct RWSet {
     msp : String,
@@ -23,9 +24,9 @@ pub struct _Transaction {
 }
 
 pub struct Peer {
-   // msp : String;
-    pub c1 : (Sender<String>, Receiver<String>),
-    pub c2 : (Sender<String>, Receiver<String>)
+    // msp : String;
+    pub s1 : Sender<String>,
+    pub r2 : Receiver<String>
 }
 
 
@@ -33,34 +34,42 @@ impl Peer {
 
     pub fn new() -> Peer {
 
-       return Peer {c1 : unbounded(), c2 : unbounded() };
-    }
+        let c1 : (Sender<String>, Receiver<String>) = unbounded();
+        let c2 : (Sender<String>, Receiver<String>) = unbounded();
 
-    pub fn start(&self) {
+        let p = Peer { s1 : c1.0,  r2: c2.1 };
+
+        let r1= c1.1;
+        let s2 = c2.0;
 
         thread::spawn(move || {
+
             loop {
-                    select! {
-                        recv(self.c1.1) -> msg => {
+                select! {
+                        recv(r1) -> msg => {
                                  if msg == Err(RecvError) {
                                    println!("err_r1");
                                  }else{
-                                    println!("{}", msg.unwrap());
-                                    self.c2.0.send(String::from("20")).unwrap();
+                                    //println!("{}", msg.unwrap());
+                                    s2.send(String::from("bye")).unwrap();
                                  }}
                                 ,
                         default(Duration::from_secs(3)) => println!("timed out")
                     }
-            }}
-        );
+            }
 
+        });
+
+        return p;
     }
 
     pub fn add_trans(&self, s : String) -> String {
-        self.c1.0.send(s).unwrap();
-        let a = self.c2.1.recv().unwrap();
+        self.s1.send(s).unwrap();
+        let a = self.r2.recv().unwrap();
 
+        //println!("{}", a.as_str());
         a
+
     }
 }
 
@@ -81,9 +90,6 @@ impl Fabric {
     }
 
     pub fn start(&self) {
-
-        self.endorser1.start();
-        self.endorser2.start();
 
     }
 
