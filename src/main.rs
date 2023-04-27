@@ -1,15 +1,13 @@
 mod fabric;
 
 use stopwatch::{Stopwatch};
-use fabric::client::ClientSdk;
+use fabric::client::ClientSDK;
 
 fn main() {
 
     println!("act - 1");
-    //
-    let  sdk: ClientSdk = fabric::client::client_sdk();
-    sdk.start_fabric();
 
+    let  sdk: ClientSDK = ClientSDK::start_new();
     let sw = Stopwatch::start_new();
 
     println!("act - 2");
