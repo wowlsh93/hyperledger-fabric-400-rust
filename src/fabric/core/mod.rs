@@ -104,6 +104,6 @@ impl Fabric {
         let s1 = self.endorser1.add_trans(String::from("hi"));
         let s2 = self.endorser2.add_trans(String::from("hi"));
 
-       return (s1, s2);
+        return (s1, s2);
     }
 }
