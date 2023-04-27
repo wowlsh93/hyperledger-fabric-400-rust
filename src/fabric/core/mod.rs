@@ -1,4 +1,4 @@
-use std::{thread, time};
+use std::{io, thread, time};
 use std::time::Duration;
 use crossbeam::crossbeam_channel::{never, unbounded,Select,RecvError, Sender, Receiver};
 use crossbeam::crossbeam_channel::select;
@@ -25,8 +25,8 @@ pub struct _Transaction {
 
 pub struct Peer {
     // msp : String;
-    pub s1 : Sender<String>,
-    pub r2 : Receiver<String>
+    pub sender : Sender<String>,
+    pub receiver : Receiver<String>
 }
 
 
@@ -37,24 +37,26 @@ impl Peer {
         let c1 : (Sender<String>, Receiver<String>) = unbounded();
         let c2 : (Sender<String>, Receiver<String>) = unbounded();
 
-        let p = Peer { s1 : c1.0,  r2: c2.1 };
+        let p = Peer { sender : c1.0,  receiver: c2.1 };
 
-        let r1= c1.1;
-        let s2 = c2.0;
+        let ch1_receiver= c1.1;
+        let ch2_sender = c2.0;
 
         thread::spawn(move || {
 
             loop {
                 select! {
-                        recv(r1) -> msg => {
+                        recv(ch1_receiver) -> msg => {
                                  if msg == Err(RecvError) {
-                                   println!("err_r1");
+                                   println!("recv error");
                                  }else{
-                                    //println!("{}", msg.unwrap());
-                                    s2.send(String::from("bye")).unwrap();
+                                    ch2_sender.send(String::from("rwset-data")).unwrap();
                                  }}
                                 ,
-                        default(Duration::from_secs(3)) => println!("timed out")
+                        default(Duration::from_secs(3)) => {
+                            println!("timed out");
+                            break;
+                        }
                     }
             }
 
@@ -63,13 +65,9 @@ impl Peer {
         return p;
     }
 
-    pub fn add_trans(&self, s : String) -> String {
-        self.s1.send(s).unwrap();
-        let a = self.r2.recv().unwrap();
-
-        //println!("{}", a.as_str());
-        a
-
+    pub fn send_transaction(&self, msg : String) -> String {
+        self.sender.send(msg).unwrap();
+        return self.receiver.recv().unwrap();
     }
 }
 
@@ -84,16 +82,14 @@ pub struct Fabric {
 impl Fabric {
 
     pub fn new() -> Fabric {
-
         Fabric{endorser1 : Peer::new(), endorser2 : Peer::new(), MSP_org1 : String::from("org1")}
-
     }
 
     pub fn start(&self) {
 
     }
 
-    pub fn write_transaction(&self, key: &str, value :  &str) -> ((String,String)) {
+    pub fn send_transaction(&self, key: &str, value :  &str) ->  Result<(String,String), io::Error> {
 
         // let t = Transaction{
         //     msp: self.MSP_org1,
@@ -101,9 +97,9 @@ impl Fabric {
         //     value: value
         // };
 
-        let s1 = self.endorser1.add_trans(String::from("hi"));
-        let s2 = self.endorser2.add_trans(String::from("hi"));
+        let s1 = self.endorser1.send_transaction(String::from("hi"));
+        let s2 = self.endorser2.send_transaction(String::from("hi"));
 
-        return (s1, s2);
+        return Ok((s1, s2));
     }
 }

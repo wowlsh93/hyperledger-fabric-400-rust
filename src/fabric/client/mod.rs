@@ -1,3 +1,4 @@
+use std::io;
 use super::core::Fabric;
 
 pub struct ClientSDK {
@@ -20,9 +21,8 @@ impl ClientSDK {
         self.f.start();
     }
 
-    pub fn write_trans(&self, k : &str, v : &str) -> &str {
-        let rwset = self.f.write_transaction(k,v);
-        "fail"
+    pub fn send_transaction(&self, k : &str, v : &str) -> Result<(String,String), io::Error>  {
+        return self.f.send_transaction(k,v);
     }
 
 }
