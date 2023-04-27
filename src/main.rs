@@ -1,7 +1,7 @@
-extern crate stopwatch;
 mod fabric;
+
 use stopwatch::{Stopwatch};
-use crate::fabric::ClientSdk;
+use fabric::ClientSdk;
 
 fn main() {
 

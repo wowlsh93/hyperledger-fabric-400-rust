@@ -1,6 +1,5 @@
 
 
-mod core;
 
 pub fn client_sdk() -> ClientSdk {
 
@@ -14,7 +13,7 @@ pub struct ClientSdk {
 impl ClientSdk {
 
     pub fn start_fabric (&self) {
-      self.f.start();
+        self.f.start();
     }
 
     pub fn write_trans(&self, k : &str, v : &str) -> &str {
@@ -23,3 +22,6 @@ impl ClientSdk {
     }
 
 }
+
+
+mod core;
